@@ -6,8 +6,24 @@ const public_users = express.Router();
 
 
 public_users.post("/register", (req,res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+    if(req.query.username === null) {
+        res.send({ message: "Username not provided"});
+    } else if (req.query.password === null) {
+        res.send({ message: "Password not provided"});
+    } else {
+        if (users.includes({
+            "username": req.query.username,
+            "password": req.query.password
+        })) {
+            res.send({message: "Customer is already registered."})
+        } else {
+        users.push({
+            "username": req.query.username,
+            "password": req.query.password
+        })
+        res.send({ message: "Customer successfully registered. Now you can log in"});
+        }
+    }
 });
 
 // Get the book list available in the shop
@@ -30,10 +46,11 @@ public_users.get('/isbn/:isbn',function (req, res) {
 // Get book details based on author
 public_users.get('/author/:author',function (req, res) {
     author = req.params.author;
-    let filtered_books = [];
+    let filtered_books = {"booksbyauthor": []};
     for (let key in books) {
         if (books.hasOwnProperty(key) && books[key].author == author) {
-            filtered_books.push(books[key]);
+            filtered_books["booksbyauthor"].push(
+                {isbn: key, title: books[key].title, reviews: books[key].reviews});
         }
     }
     res.send(filtered_books);
@@ -41,14 +58,28 @@ public_users.get('/author/:author',function (req, res) {
 
 // Get all books based on title
 public_users.get('/title/:title',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+    let title = req.params.title;
+    let filtered_books = {"booksbytitle": []};
+    for (let key in books) {
+        if (books.hasOwnProperty(key) && books[key].title == title) {
+            filtered_books["booksbytitle"].push(
+                {isbn: key, author: books[key].author, reviews: books[key].reviews});
+        }
+    }
+    res.send(filtered_books);
+
 });
 
 //  Get book review
 public_users.get('/review/:isbn',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+    isbn = req.params.isbn;
+    let review;
+    for (let key in books) {
+        if (books.hasOwnProperty(key) && key === isbn) {
+            review = books[key].reviews;
+        }
+    }
+    res.send(review);
 });
 
 module.exports.general = public_users;
