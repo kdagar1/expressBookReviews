@@ -23,31 +23,39 @@ const authenticatedUser = (username,password)=>{ //returns boolean
 
 //only registered users can login
 regd_users.post("/login", (req,res) => {
-    const user = req.body.username;
+    const username = req.body.username;
     const password = req.body.password;
-    if (!authenticatedUser(user, password)) {
+    if (!authenticatedUser(username, password)) {
         return res.status(404).json({ message: "Invalid username or password" });
     }
     // Generate JWT access token
     let accessToken = jwt.sign({
-        data: user, password
+        data: username, password
     }, 'access', { expiresIn: 60 * 60 });
 
     // Store access token in session
     req.session.authorization = {
-        accessToken, user
+        accessToken, username
     }
     return res.status(200).send("Customer successfully logged in");
 });
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-    let user = req.session.username;
+    let user = req.session.authorization.username;
     let isbn = req.params.isbn;
     let newReview = req.query.review;
     books[isbn].reviews[user] =  newReview;
     return res.status(201).json(`The Review for the book with ISBN ${isbn} has been added/updated.`)
 });
+
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    let user = req.session.authorization.username;
+    let isbn = req.params.isbn;
+    delete books[isbn].reviews[user]
+    return res.status(201).json(`Reviews for the ISBN ${isbn} posted by the user ${user} deleted.`)
+
+})
 
 module.exports.authenticated = regd_users;
 module.exports.isValid = isValid;
