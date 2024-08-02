@@ -6,24 +6,20 @@ const public_users = express.Router();
 
 
 public_users.post("/register", (req,res) => {
-    if(req.query.username === null) {
-        res.send({ message: "Username not provided"});
-    } else if (req.query.password === null) {
-        res.send({ message: "Password not provided"});
-    } else {
-        if (users.includes({
-            "username": req.query.username,
-            "password": req.query.password
-        })) {
+    const username = req.body.username;
+    const password = req.body.password;
+    if (username && password) {
+        if(isValid(username)) {
             res.send({message: "Customer is already registered."})
         } else {
-        users.push({
-            "username": req.query.username,
-            "password": req.query.password
-        })
-        res.send({ message: "Customer successfully registered. Now you can log in"});
+            users.push({
+            "username": username,
+            "password": password
+            })
+            res.send({ message: "Customer successfully registered. Now you can log in"});
         }
     }
+    return res.status(404).json({message: "Username or password not provided"})
 });
 
 // Get the book list available in the shop
