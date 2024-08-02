@@ -5,22 +5,18 @@ const regd_users = express.Router();
 
 let users = [];
 
-const isValid = (username)=>{ //returns boolean
+const isValid = (username)=>{
     let filtered_users = users.filter((user)=> username.username === username);
-    if(filtered_users){
+    if(filtered_users.length > 0){
         return true;
     }
     return false;
 }
 
 const authenticatedUser = (username,password)=>{ //returns boolean
-    if(isValid(username)){
-        let filtered_users = users.filter((user)=> (user.username===username)&&(user.password===password));
-        if(filtered_users){
-            return true;
-        }
-        return false;
-       
+    let filtered_users = users.filter((user)=> (user.username===username)&&(user.password===password));
+    if(filtered_users.length > 0){
+        return true;
     }
     return false;
 }
@@ -30,7 +26,7 @@ regd_users.post("/login", (req,res) => {
     const user = req.body.username;
     const password = req.body.password;
     if (!authenticatedUser(user, password)) {
-        return res.status(404).json({ message: "Incorrect username or password" });
+        return res.status(404).json({ message: "Invalid username or password" });
     }
     // Generate JWT access token
     let accessToken = jwt.sign({
@@ -39,7 +35,7 @@ regd_users.post("/login", (req,res) => {
 
     // Store access token in session
     req.session.authorization = {
-        accessToken
+        accessToken, user
     }
     return res.status(200).send("Customer successfully logged in");
 });
