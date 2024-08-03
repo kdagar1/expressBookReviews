@@ -22,48 +22,76 @@ public_users.post("/register", (req,res) => {
     return res.status(404).json({message: "Username or password not provided"})
 });
 
+let getBooksPromise = new Promise((resolve,reject) => {
+    setTimeout(() => {
+      resolve(books)
+    },6000)})
+
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
-    res.send(JSON.stringify({books}, null, "\t"));
+    getBooksPromise.then((books) => {
+        res.send(JSON.stringify({books}, null, "\t"));
+  })
 });
+
+function getISBNPromise(isbn){
+    return new Promise((resolve,reject) => {
+        let filtered_books = [];
+        for (let key in books) {
+            if (books.hasOwnProperty(key) && key === isbn) {
+                filtered_books.push(books[key]);
+                resolve(filtered_books);
+            }
+        }   
+        reject({message: "ISBN not found"});
+    })
+}
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
-    isbn = req.params.isbn;
-    let filtered_books = [];
-    for (let key in books) {
-        if (books.hasOwnProperty(key) && key === isbn) {
-            filtered_books.push(books[key]);
-        }
-    }
-    res.send(filtered_books);
+    getISBNPromise(req.params.isbn).then((found_book) => {
+        res.send(found_book);
+    })
  });
   
+function getAuthorPromise(author) {
+    return new Promise((resolve,reject) => {
+        let filtered_books = {"booksbyauthor": []};
+        for (let key in books) {
+            if (books.hasOwnProperty(key) && books[key].author == author) {
+                filtered_books["booksbyauthor"].push(
+                    {isbn: key, title: books[key].title, reviews: books[key].reviews});
+                resolve(filtered_books);
+            }
+        }
+        reject({message: `Book by ${author} not found`});
+    })
+}
 // Get book details based on author
 public_users.get('/author/:author',function (req, res) {
-    author = req.params.author;
-    let filtered_books = {"booksbyauthor": []};
-    for (let key in books) {
-        if (books.hasOwnProperty(key) && books[key].author == author) {
-            filtered_books["booksbyauthor"].push(
-                {isbn: key, title: books[key].title, reviews: books[key].reviews});
-        }
-    }
-    res.send(filtered_books);
+    getAuthorPromise(req.params.author).then((found_book) => {
+        res.send(found_book);
+    })
 });
 
+function getTitlePromise(title) {
+    return new Promise((resolve,reject) => {
+        let filtered_books = {"booksbytitle": []};
+        for (let key in books) {
+            if (books.hasOwnProperty(key) && books[key].title == title) {
+                filtered_books["booksbytitle"].push(
+                    {isbn: key, author: books[key].author, reviews: books[key].reviews});
+                resolve(filtered_books);
+            }
+        }
+        reject({message: `Book by ${author} not found`});
+    })   
+}
 // Get all books based on title
 public_users.get('/title/:title',function (req, res) {
-    let title = req.params.title;
-    let filtered_books = {"booksbytitle": []};
-    for (let key in books) {
-        if (books.hasOwnProperty(key) && books[key].title == title) {
-            filtered_books["booksbytitle"].push(
-                {isbn: key, author: books[key].author, reviews: books[key].reviews});
-        }
-    }
-    res.send(filtered_books);
-
+    getTitlePromise(req.params.title).then((found_book) => {
+        res.send(found_book);
+    })
 });
 
 //  Get book review
